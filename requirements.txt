@@ -1,0 +1,14 @@
+# flask>=2.3
+# playwright>=1.40
+# gunicorn
+
+
+
+# Web framework
+Flask>=2.3,<4
+
+# Production WSGI server (Render/Linux 用；Windows 本地一般不用它启动)
+gunicorn>=21,<23
+
+# Browser automation (你的 Verif_code_acquire.py 依赖它)
+playwright>=1.40,<2
