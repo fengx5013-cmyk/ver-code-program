@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>获取验证码</title>
+
+<style>
+/* ======= 全局黑金背景 ======= */
+body {
+    margin: 0;
+    height: 100vh;
+    background: radial-gradient(circle at top, #2a2003 0%, #000 70%);
+    overflow: hidden;
+    font-family: "PingFang SC", "Segoe UI", sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#FFD700;
+}
+
+/* ======= 动态粒子背景 ======= */
+#particles {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* ======= 主框体 ======= */
+.frame {
+    position: relative;
+    width: 92%;
+    max-width: 900px;
+    height: 85vh;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    border: 1px solid rgba(255,215,0,0.3);
+    box-shadow: 0 0 25px rgba(255,215,0,0.3);
+    overflow: hidden;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    animation: frameGlow 4s infinite alternate ease-in-out;
+}
+@keyframes frameGlow {
+    0% { box-shadow: 0 0 12px rgba(255,215,0,0.25); }
+    100% { box-shadow: 0 0 26px rgba(255,215,0,0.55); }
+}
+
+/* ======= Header ======= */
+.header {
+    padding: 16px;
+    border-bottom: 1px solid rgba(255,215,0,0.25);
+    display: flex;
+    gap: 10px;
+}
+
+.header input {
+    flex:1;
+    padding: 10px 14px;
+    background: #111;
+    border: 1px solid #444;
+    border-radius: 8px;
+    color:#FFD700;
+}
+
+.header button {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    font-weight: bold;
+    background: linear-gradient(90deg,#b8860b,#ffd700,#b8860b);
+    background-size: 300% 100%;
+    cursor: pointer;
+    animation: btnFlow 2.5s infinite linear;
+    color: #000;
+    box-shadow: 0 0 12px rgba(255,215,0,0.6);
+}
+@keyframes btnFlow {
+    0% { background-position: 0% 0; }
+    100% { background-position: -300% 0; }
+}
+
+.status {
+    font-size: 12px;
+    margin-left: 6px;
+}
+
+/* ======= 中间售后提示条（已改） ======= */
+#wxMiddleBox {
+    display:none;
+    padding:12px;
+    text-align:center;
+    background: rgba(40,30,5,0.8);
+    border-bottom:1px solid rgba(255,215,0,0.3);
+    font-size:15px;
+    letter-spacing:1px;
+    color:#FFD700;
+    text-shadow: 0 0 8px rgba(255,215,0,0.5);
+    animation: wxGlow 3s infinite alternate;
+}
+@keyframes wxGlow {
+    0% { box-shadow: 0 0 6px rgba(255,215,0,0.2); }
+    100% { box-shadow: 0 0 14px rgba(255,215,0,0.45); }
+}
+
+/* ======= 验证码框 ======= */
+.content { flex:1; position:relative; }
+
+.verify-code-area {
+    display:none;
+    position:absolute;
+    inset:0;
+    border:2px dashed #d4af37;
+    border-radius:12px;
+    background:#111;
+    box-shadow:0 0 20px rgba(255,215,0,0.3);
+}
+
+.code-label {
+    position:absolute;
+    top:10px;
+    left:16px;
+    padding:4px 10px;
+    color:#FFD700;
+    background:#000;
+    border-radius:6px;
+    border:1px solid rgba(255,215,0,0.3);
+}
+
+.code-placeholder {
+    height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.code-glow {
+    font-size:70px;
+    font-weight:bold;
+    color:#FFD700;
+    text-shadow:
+        0 0 10px rgba(255,215,0,0.8),
+        0 0 20px rgba(255,215,0,0.7),
+        0 0 40px rgba(255,215,0,0.6);
+}
+
+/* 粒子样式 */
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle,#ffd700,#b8860b,#000);
+    border-radius: 50%;
+    opacity: 0.7;
+}
+
+/* 提示淡出动画 */
+@keyframes fadeOut {
+    0% { opacity:1; }
+    100% { opacity:0; }
+}
+</style>
+</head>
+<body>
+
+<!-- 粒子背景 -->
+<canvas id="particles"></canvas>
+
+<div class="frame">
+
+  <div class="header">
+    <input id="token" placeholder="Token 自动填入">
+    <button id="getBtn">获取验证码</button>
+    <span id="status"></span>
+  </div>
+
+  <!-- 售后微信区（重要提示） -->
+  <div id="wxMiddleBox"></div>
+
+  <div class="content">
+    <div id="verifyCodeArea" class="verify-code-area">
+      <span class="code-label">📱 验证码区域</span>
+      <div id="codeBox" class="code-placeholder">验证码将在此显示</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ===== URL 参数 ===== */
+function parseParams() {
+    const p = new URLSearchParams(window.location.search);
+    return {
+        token: p.get("token") || "",
+        wx: p.get("ccctoken") || ""
+    };
+}
+
+let finalWx = "YiChengFighting";  // 默认售后微信
+
+window.onload = function() {
+    const { token, wx } = parseParams();
+
+    if (token) {
+        let t = document.getElementById("token");
+        t.value = token;
+        t.disabled = true;
+        t.style.opacity = 0.7;
+    }
+
+    // 验证ccctoken，只有特定值才显示，否则使用默认值
+    if (wx && (wx === "LinRui_412" || wx === "gouxiongkaifeiji")) {
+        finalWx = wx;
+    } else {
+        finalWx = "YiChengFighting";
+    }
+};
+
+/* ===== 点击按钮：先显示售后微信，再获取验证码 ===== */
+document.getElementById("getBtn").onclick = async function() {
+    const token = document.getElementById("token").value.trim();
+    const statusEl = document.getElementById("status");
+    const wxBox = document.getElementById("wxMiddleBox");
+    const area = document.getElementById("verifyCodeArea");
+    const codeBox = document.getElementById("codeBox");
+
+    if (!token) {
+        statusEl.innerHTML = "请输入 Token";
+        statusEl.style.color = "red";
+        return;
+    }
+
+    /* 立即显示售后微信 */
+    wxBox.style.display = "block";
+    wxBox.innerHTML = `
+      <div style="font-weight:bold;font-size:16px;margin-bottom:6px;">
+        ⚠️ 请立即添加售后微信（必须添加 领取导出工具）
+      </div>
+
+      <div style="margin-bottom:8px;">
+        账号使用中如遇退出、风控、封号、重新登录失败、需要补号，都需要联系售后处理，否则无法补救。
+      </div>
+
+      售后微信：
+      <span id="wxText" style="font-size:20px;color:#ffdd55;font-weight:bold;">${finalWx}</span>
+
+      <button onclick="copyWx()" 
+          style="
+              margin-left:10px;
+              padding:5px 12px;
+              font-size:12px;
+              background:linear-gradient(90deg,#b8860b,#ffd700,#b8860b);
+              background-size:300% 100%;
+              border:none;
+              border-radius:6px;
+              cursor:pointer;
+              color:#000;
+              font-weight:bold;
+              animation: btnFlow 2.5s infinite linear;
+              box-shadow:0 0 6px rgba(255,215,0,0.5);
+          ">
+          复制微信
+      </button>
+
+      <div style="font-size:12px;color:#bfa84a;margin-top:6px;">
+          ❗ 请务必添加售后微信，否则中途退出或风控无法补号！
+      </div>
+      <div style="font-size:12px;color:#bfa84a;margin-top:6px;">
+          ❗ 请务必添加售后微信，否则中途退出或风控无法补号！
+      </div>
+      <div style="font-size:12px;color:#bfa84a;margin-top:6px;">
+          ❗ 请务必添加售后微信，否则中途退出或风控无法补号！
+      </div>
+    `;
+
+    await new Promise(r => setTimeout(r, 50));
+
+    /* 开始获取验证码 */
+    statusEl.innerHTML = "获取中...";
+    statusEl.style.color = "#FFD700";
+
+    try {
+        const res = await fetch(`/proxy/code?token=${encodeURIComponent(token)}`);
+        const data = await res.json();
+
+        if (!data || !data.code) {
+            statusEl.innerHTML = data && data.error ? data.error : "获取失败";
+            statusEl.style.color = "red";
+            return;
+        }
+
+        area.style.display = "block";
+        codeBox.innerHTML = `<div class="code-glow">${data.code}</div>`;
+        statusEl.innerHTML = "成功";
+        statusEl.style.color = "green";
+
+    } catch (err) {
+        statusEl.innerHTML = "服务器错误";
+        statusEl.style.color = "red";
+    }
+};
+
+/* ===== 复制售后微信 ===== */
+function copyWx() {
+    const wx = document.getElementById("wxText").innerText;
+
+    const input = document.createElement("input");
+    input.value = wx;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand("copy");
+    document.body.removeChild(input);
+
+    const wxBox = document.getElementById("wxMiddleBox");
+    let msg = document.createElement("div");
+    msg.innerHTML = "✅ 已复制售后微信";
+    msg.style.fontSize = "12px";
+    msg.style.color = "#4caf50";
+    msg.style.marginTop = "5px";
+    msg.style.animation = "fadeOut 2s forwards";
+    wxBox.appendChild(msg);
+
+    setTimeout(() => msg.remove(), 2000);
+}
+
+/* ===== 黄金粒子动画 ===== */
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let w, h;
+function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+}
+resize();
+window.onresize = resize;
+
+let particles = [];
+for (let i = 0; i < 80; i++) {
+    particles.push({
+        x: Math.random()*w,
+        y: Math.random()*h,
+        r: Math.random()*2+1,
+        dx: (Math.random()-0.5)*0.5,
+        dy: (Math.random()-0.5)*0.5
+    });
+}
+
+function animate() {
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = "#FFD700";
+    particles.forEach(p=>{
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fill();
+
+        p.x+=p.dx; p.y+=p.dy;
+        if(p.x<0||p.x>w) p.dx*=-1;
+        if(p.y<0||p.y>h) p.dy*=-1;
+    });
+    requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>

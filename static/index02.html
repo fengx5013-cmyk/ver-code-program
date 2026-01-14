@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>获取验证码</title>
+
+  <style>
+    :root{
+      --bg0:#070A12;
+      --bg1:#0B1030;
+      --txt: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.62);
+
+      --neon-cyan:#4DF3FF;
+      --neon-mag:#B25BFF;
+      --neon-gold:#FFD56A;
+      --good:#42d392;
+      --bad:#ff5a7a;
+
+      --r: 18px;
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+    }
+
+    * { box-sizing: border-box; }
+    html,body { height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, PingFang SC, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      color: var(--txt);
+      background:
+        radial-gradient(1200px 600px at 15% 10%, rgba(178,91,255,.28), transparent 60%),
+        radial-gradient(900px 500px at 85% 20%, rgba(77,243,255,.22), transparent 62%),
+        radial-gradient(900px 700px at 50% 95%, rgba(255,213,106,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+      overflow:hidden;
+    }
+
+    #particles{
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: .85;
+    }
+
+    .wrap{
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+
+    .app{
+      width: min(1080px, 100%);
+      height: min(780px, 92vh);
+      border-radius: calc(var(--r) + 6px);
+      position: relative;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      background: rgba(10,12,24,.52);
+      border: 1px solid rgba(255,255,255,.08);
+      backdrop-filter: blur(14px);
+    }
+
+    .app::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      border-radius: calc(var(--r) + 8px);
+      background: conic-gradient(
+        from 220deg,
+        rgba(77,243,255,.0),
+        rgba(77,243,255,.85),
+        rgba(178,91,255,.85),
+        rgba(255,213,106,.7),
+        rgba(77,243,255,.0)
+      );
+      filter: blur(10px);
+      opacity: .55;
+      animation: aura 6.5s linear infinite;
+      z-index: 0;
+    }
+    @keyframes aura{ to{ transform: rotate(360deg); } }
+
+    .app-inner{
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 12px;
+      border-radius: var(--r);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.10);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      min-width: 190px;
+    }
+    .logo{
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(77,243,255,.9), transparent 55%),
+        radial-gradient(circle at 70% 70%, rgba(178,91,255,.85), transparent 55%),
+        rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: 0 0 24px rgba(77,243,255,.20);
+    }
+    .brand h1{
+      margin:0;
+      font-size: 15px;
+      letter-spacing: .4px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .controls{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex: 1;
+      justify-content: flex-end;
+    }
+
+    /* ✅ Token 输入框拉长：max-width 从 440 -> 640 */
+    .input{
+      flex: 1;
+      max-width: 640px;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+    .input span{
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .input input{
+      width: 100%;
+      background: transparent;
+      border: 0;
+      outline: none;
+      color: var(--txt);
+      font-size: 14px;
+      letter-spacing: .2px;
+    }
+    .input input::placeholder{ color: rgba(255,255,255,.35); }
+
+    .btn{
+      border: 0;
+      cursor: pointer;
+      padding: 11px 14px;
+      border-radius: 14px;
+      color: rgba(255,255,255,.92);
+      font-weight: 800;
+      letter-spacing: .3px;
+      background:
+        radial-gradient(120px 40px at 20% 20%, rgba(77,243,255,.55), transparent 60%),
+        radial-gradient(160px 60px at 80% 40%, rgba(178,91,255,.55), transparent 60%),
+        rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow:
+        0 10px 25px rgba(0,0,0,.35),
+        0 0 26px rgba(77,243,255,.15);
+      transition: transform .08s ease, filter .18s ease;
+      user-select:none;
+      white-space: nowrap;
+    }
+    .btn:hover{ filter: brightness(1.08); }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+
+    /* 状态：默认不显示；只有 setStatus 写入时才出现 */
+    .status{
+      min-width: 88px;
+      text-align: right;
+      font-size: 12px;
+      color: var(--muted);
+      opacity: 0;
+      transform: translateY(-1px);
+      transition: opacity .18s ease, transform .18s ease;
+      pointer-events: none;
+    }
+    .status.show{
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .ok{ color: var(--good) !important; }
+    .err{ color: var(--bad) !important; }
+
+    .main{
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+      min-height: 0;
+    }
+    @media (max-width: 860px){
+      .main{ grid-template-columns: 1fr; }
+      .brand{ min-width: 150px; }
+      .input{ max-width: none; }
+    }
+
+    .card{
+      border-radius: var(--r);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.12);
+      overflow: hidden;
+      min-height: 0;
+      display:flex;
+      flex-direction: column;
+    }
+
+    .card-hd{
+      padding: 14px 14px 10px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .card-hd .title{
+      font-size: 13px;
+      color: rgba(255,255,255,.86);
+      letter-spacing: .25px;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      font-weight: 800;
+    }
+    .pill{
+      font-size: 11px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      color: rgba(255,255,255,.78);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      white-space: nowrap;
+    }
+
+    .card-bd{
+      padding: 14px;
+      min-height: 0;
+      overflow:auto;
+    }
+
+    .code-stage{
+      height: 100%;
+      min-height: 280px;
+      display:grid;
+      place-items:center;
+      border-radius: 16px;
+      background:
+        radial-gradient(600px 260px at 50% 0%, rgba(77,243,255,.14), transparent 55%),
+        radial-gradient(520px 240px at 30% 90%, rgba(178,91,255,.16), transparent 55%),
+        rgba(0,0,0,.18);
+      border: 1px dashed rgba(255,255,255,.18);
+      position: relative;
+      overflow:hidden;
+    }
+    .code-stage::after{
+      content:"";
+      position:absolute;
+      inset:-60px;
+      background:
+        conic-gradient(from 90deg,
+          rgba(77,243,255,.0),
+          rgba(77,243,255,.22),
+          rgba(178,91,255,.20),
+          rgba(255,213,106,.16),
+          rgba(77,243,255,.0)
+        );
+      opacity: .55;
+      filter: blur(22px);
+      animation: aura 10s linear infinite;
+      pointer-events:none;
+    }
+
+    .code-box{
+      position: relative;
+      z-index: 1;
+      text-align:center;
+      padding: 22px 18px;
+    }
+    .code-tip{
+      font-size: 12px;
+      color: rgba(255,255,255,.58);
+      letter-spacing: .2px;
+      margin-bottom: 12px;
+    }
+    .code{
+      font-size: clamp(54px, 6.5vw, 86px);
+      font-weight: 900;
+      letter-spacing: 1px;
+      line-height: 1;
+      color: rgba(255,255,255,.94);
+      text-shadow:
+        0 0 18px rgba(77,243,255,.35),
+        0 0 38px rgba(178,91,255,.28),
+        0 0 58px rgba(255,213,106,.16);
+    }
+
+    /* ✅ 售后信息：常驻展示 */
+    .wx{
+      display:grid;
+      gap: 10px;
+    }
+    .wx .warn{
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(420px 180px at 20% 0%, rgba(255,213,106,.12), transparent 55%),
+        rgba(0,0,0,.18);
+    }
+    .wx .warn strong{
+      display:block;
+      margin-bottom: 6px;
+      color: rgba(255,255,255,.92);
+      letter-spacing: .2px;
+    }
+    .wx .warn p{
+      margin: 0;
+      color: rgba(255,255,255,.70);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .wxid{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+    }
+    .wxid .left{ min-width: 0; }
+    .wxid .label{
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .wxid .val{
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: .3px;
+      color: rgba(255,255,255,.94);
+      text-shadow: 0 0 18px rgba(255,213,106,.22);
+      word-break: break-all;
+    }
+
+    .btn-mini{
+      border: 0;
+      cursor: pointer;
+      padding: 9px 10px;
+      border-radius: 12px;
+      color: rgba(255,255,255,.92);
+      font-weight: 800;
+      background:
+        radial-gradient(120px 40px at 30% 20%, rgba(255,213,106,.28), transparent 60%),
+        rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: 0 10px 22px rgba(0,0,0,.25);
+      white-space: nowrap;
+    }
+    .btn-mini:hover{ filter: brightness(1.08); }
+    .btn-mini:active{ transform: translateY(1px); }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 999px;
+      padding: 10px 14px;
+      color: rgba(255,255,255,.88);
+      font-size: 12px;
+      box-shadow: 0 12px 35px rgba(0,0,0,.45);
+      backdrop-filter: blur(10px);
+      opacity: 0;
+      pointer-events:none;
+      transition: opacity .2s ease, transform .2s ease;
+      z-index: 50;
+    }
+    .toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+        /* ====== 售后强提醒（重点突出）====== */
+    .critical{
+    border-radius: 16px;
+    padding: 14px;
+    border: 1px solid rgba(255,90,122,.45);
+    background:
+        radial-gradient(520px 220px at 20% 0%, rgba(255,90,122,.18), transparent 60%),
+        radial-gradient(520px 260px at 80% 20%, rgba(255,213,106,.16), transparent 62%),
+        rgba(0,0,0,.22);
+    box-shadow:
+        0 18px 45px rgba(0,0,0,.35),
+        0 0 36px rgba(255,90,122,.18);
+    position: relative;
+    overflow: hidden;
+    }
+
+    .critical::before{
+    content:"";
+    position:absolute;
+    inset:-2px;
+    background: conic-gradient(
+        from 230deg,
+        rgba(255,90,122,.0),
+        rgba(255,90,122,.55),
+        rgba(255,213,106,.45),
+        rgba(77,243,255,.35),
+        rgba(255,90,122,.0)
+    );
+    filter: blur(16px);
+    opacity: .55;
+    animation: criticalPulse 2.8s ease-in-out infinite;
+    pointer-events:none;
+    }
+
+    @keyframes criticalPulse{
+    0%,100%{ transform: scale(1); opacity: .45; }
+    50%{ transform: scale(1.02); opacity: .70; }
+    }
+
+    .critical-inner{
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 10px;
+    }
+
+    .critical-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    }
+
+    .critical-title{
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: .2px;
+    line-height: 1.35;
+    color: rgba(255,255,255,.96);
+    text-shadow: 0 0 18px rgba(255,90,122,.25);
+    }
+
+    .critical-chip{
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 900;
+    padding: 6px 10px;
+    border-radius: 999px;
+    color: rgba(255,255,255,.92);
+    background: rgba(255,90,122,.18);
+    border: 1px solid rgba(255,90,122,.45);
+    box-shadow: 0 0 22px rgba(255,90,122,.18);
+    white-space: nowrap;
+    }
+
+    .critical-desc{
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.55;
+    color: rgba(255,255,255,.78);
+    }
+
+    .critical-wxid{
+    border: 1px solid rgba(255,213,106,.28) !important;
+    background:
+        radial-gradient(360px 140px at 20% 0%, rgba(255,213,106,.16), transparent 60%),
+        rgba(0,0,0,.20) !important;
+    }
+
+    .critical-wxid .val{
+    font-size: 20px !important;
+    text-shadow:
+        0 0 18px rgba(255,213,106,.22),
+        0 0 26px rgba(255,90,122,.12) !important;
+    }
+
+    .critical-repeat{
+    display: grid;
+    gap: 8px;
+    }
+
+    .repeat-line{
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .2px;
+    color: rgba(255,255,255,.92);
+    padding: 10px 10px;
+    border-radius: 12px;
+    background:
+        linear-gradient(90deg, rgba(255,90,122,.20), rgba(255,213,106,.12), rgba(77,243,255,.08));
+    border: 1px solid rgba(255,90,122,.30);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+    }
+
+  </style>
+</head>
+
+<body>
+  <canvas id="particles"></canvas>
+
+  <div class="wrap">
+    <div class="app">
+      <div class="app-inner">
+
+        <div class="topbar">
+          <div class="brand">
+            <div class="logo"></div>
+            <div><h1>验证码控制台</h1></div>
+          </div>
+
+          <div class="controls">
+            <div class="input">
+              <span>Token</span>
+              <input id="token" placeholder="自动填入或手动输入 Token" />
+            </div>
+            <button class="btn" id="getBtn">获取验证码</button>
+            <div class="status" id="status"></div>
+          </div>
+        </div>
+
+        <div class="main">
+          <section class="card">
+            <div class="card-hd">
+              <div class="title">验证码</div>
+              <div class="pill" id="pill">未获取</div>
+            </div>
+            <div class="card-bd">
+              <div class="code-stage">
+                <div class="code-box" id="codeBox">
+                  <div class="code-tip">等待获取</div>
+                  <div class="code">— — — —</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <aside class="card">
+            <div class="card-hd">
+              <div class="title">售后信息</div>
+              <div class="pill">在线</div>
+            </div>
+            <div class="card-bd">
+              <div class="wx" id="wxMiddleBox">
+  <div class="critical">
+    <div class="critical-inner">
+      <div class="critical-head">
+        <div class="critical-title">⚠️ 请立即添加售后微信（必须添加 领取导出工具）</div>
+        <div class="critical-chip">必须添加</div>
+      </div>
+
+      <p class="critical-desc">
+        账号使用中如遇退出、风控、封号、重新登录失败、需要补号，都需要联系售后处理，否则无法补救。
+      </p>
+
+      <div class="wxid critical-wxid">
+        <div class="left">
+          <div class="label">售后微信</div>
+          <div class="val" id="wxText">wxid_xr40rj60s9wp12</div>
+        </div>
+        <button class="btn-mini" id="copyWxBtn">复制微信</button>
+      </div>
+
+      <div class="critical-repeat">
+        <div class="repeat-line">❗ 请务必添加售后微信，否则中途退出或风控无法补号！</div>
+        <div class="repeat-line">❗ 请务必添加售后微信，否则中途退出或风控无法补号！</div>
+        <div class="repeat-line">❗ 请务必添加售后微信，否则中途退出或风控无法补号！</div>
+      </div>
+    </div>
+  </div>
+</div>
+
