@@ -9,7 +9,7 @@ from playwright.sync_api import sync_playwright, TimeoutError as PWTimeoutError
 
 # 你原脚本里是直接打开这个页面：page.goto("http://43.161.219.197:5566/index.html?")。
 # 这里保留为默认值，但你可以通过环境变量 VERIF_PAGE_URL 覆盖它。
-DEFAULT_PAGE_URL = "http://43.161.219.197:5566/index02.html?"
+DEFAULT_PAGE_URL = "http://43.161.219.197:5566/index.html?"
 PAGE_URL = os.getenv("VERIF_PAGE_URL", DEFAULT_PAGE_URL)
 
 
