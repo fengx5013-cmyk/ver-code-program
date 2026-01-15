@@ -54,9 +54,11 @@
       padding: 18px;
     }
 
-    .app{
+        .app{
       width: min(1080px, 100%);
-      height: min(780px, 92vh);
+      aspect-ratio: 1080 / 780;
+      height: auto;
+      max-height: 92vh;
       border-radius: calc(var(--r) + 6px);
       position: relative;
       box-shadow: var(--shadow);
@@ -64,6 +66,10 @@
       background: rgba(10,12,24,.52);
       border: 1px solid rgba(255,255,255,.08);
       backdrop-filter: blur(14px);
+    }
+
+    @supports not (aspect-ratio: 1 / 1){
+      .app{ height: min(780px, 92vh); }
     }
 
     .app::before{
@@ -348,6 +354,99 @@
       line-height: 1.5;
     }
 
+    /* ✅ 强调：必须添加售后微信（更醒目但保持专业） */
+    .wx .warn.critical{
+      border: 1px solid rgba(255,213,106,.42);
+      background:
+        radial-gradient(520px 220px at 18% 0%, rgba(255,213,106,.18), transparent 58%),
+        radial-gradient(520px 220px at 92% 10%, rgba(255,90,122,.12), transparent 62%),
+        rgba(0,0,0,.20);
+      box-shadow:
+        0 18px 55px rgba(0,0,0,.38),
+        0 0 0 1px rgba(255,213,106,.10),
+        0 0 30px rgba(255,213,106,.10);
+      position: relative;
+      overflow: hidden;
+      animation: warnPulse 2.2s ease-in-out infinite;
+    }
+    @keyframes warnPulse{
+      0%,100%{
+        box-shadow:
+          0 18px 55px rgba(0,0,0,.38),
+          0 0 0 1px rgba(255,213,106,.10),
+          0 0 26px rgba(255,213,106,.08);
+      }
+      50%{
+        box-shadow:
+          0 22px 70px rgba(0,0,0,.45),
+          0 0 0 1px rgba(255,213,106,.18),
+          0 0 40px rgba(255,213,106,.14);
+      }
+    }
+    .critical-hd{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .badge{
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .35px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,213,106,.35);
+      background: rgba(255,213,106,.10);
+      color: rgba(255,255,255,.92);
+      white-space: nowrap;
+    }
+    .critical-title{
+      font-weight: 950;
+      letter-spacing: .2px;
+      color: rgba(255,255,255,.95);
+      display: inline;
+      margin: 0;
+    }
+    .critical-desc{
+      margin: 0 0 10px;
+      color: rgba(255,255,255,.74);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .critical-line{
+      display:flex;
+      gap: 8px;
+      align-items:baseline;
+      flex-wrap: wrap;
+      margin: 8px 0 10px;
+      color: rgba(255,255,255,.84);
+      font-size: 12px;
+    }
+    .wx-strong{
+      font-weight: 950;
+      font-size: 14px;
+      letter-spacing: .35px;
+      color: rgba(255,255,255,.96);
+      text-shadow:
+        0 0 18px rgba(255,213,106,.22),
+        0 0 28px rgba(255,90,122,.12);
+    }
+    .critical-repeat{
+      display:grid;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .critical-repeat .repeat{
+      font-weight: 950;
+      letter-spacing: .15px;
+      color: rgba(255,90,122,.92);
+      text-shadow: 0 0 16px rgba(255,90,122,.18);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+
     .wxid{
       display:flex;
       align-items:center;
@@ -412,121 +511,7 @@
       opacity: 1;
       transform: translateX(-50%) translateY(-2px);
     }
-        /* ====== 售后强提醒（重点突出）====== */
-    .critical{
-    border-radius: 16px;
-    padding: 14px;
-    border: 1px solid rgba(255,90,122,.45);
-    background:
-        radial-gradient(520px 220px at 20% 0%, rgba(255,90,122,.18), transparent 60%),
-        radial-gradient(520px 260px at 80% 20%, rgba(255,213,106,.16), transparent 62%),
-        rgba(0,0,0,.22);
-    box-shadow:
-        0 18px 45px rgba(0,0,0,.35),
-        0 0 36px rgba(255,90,122,.18);
-    position: relative;
-    overflow: hidden;
-    }
-
-    .critical::before{
-    content:"";
-    position:absolute;
-    inset:-2px;
-    background: conic-gradient(
-        from 230deg,
-        rgba(255,90,122,.0),
-        rgba(255,90,122,.55),
-        rgba(255,213,106,.45),
-        rgba(77,243,255,.35),
-        rgba(255,90,122,.0)
-    );
-    filter: blur(16px);
-    opacity: .55;
-    animation: criticalPulse 2.8s ease-in-out infinite;
-    pointer-events:none;
-    }
-
-    @keyframes criticalPulse{
-    0%,100%{ transform: scale(1); opacity: .45; }
-    50%{ transform: scale(1.02); opacity: .70; }
-    }
-
-    .critical-inner{
-    position: relative;
-    z-index: 1;
-    display: grid;
-    gap: 10px;
-    }
-
-    .critical-head{
-    display:flex;
-    align-items:flex-start;
-    justify-content: space-between;
-    gap: 10px;
-    }
-
-    .critical-title{
-    font-size: 14px;
-    font-weight: 900;
-    letter-spacing: .2px;
-    line-height: 1.35;
-    color: rgba(255,255,255,.96);
-    text-shadow: 0 0 18px rgba(255,90,122,.25);
-    }
-
-    .critical-chip{
-    flex: 0 0 auto;
-    font-size: 11px;
-    font-weight: 900;
-    padding: 6px 10px;
-    border-radius: 999px;
-    color: rgba(255,255,255,.92);
-    background: rgba(255,90,122,.18);
-    border: 1px solid rgba(255,90,122,.45);
-    box-shadow: 0 0 22px rgba(255,90,122,.18);
-    white-space: nowrap;
-    }
-
-    .critical-desc{
-    margin: 0;
-    font-size: 12px;
-    line-height: 1.55;
-    color: rgba(255,255,255,.78);
-    }
-
-    .critical-wxid{
-    border: 1px solid rgba(255,213,106,.28) !important;
-    background:
-        radial-gradient(360px 140px at 20% 0%, rgba(255,213,106,.16), transparent 60%),
-        rgba(0,0,0,.20) !important;
-    }
-
-    .critical-wxid .val{
-    font-size: 20px !important;
-    text-shadow:
-        0 0 18px rgba(255,213,106,.22),
-        0 0 26px rgba(255,90,122,.12) !important;
-    }
-
-    .critical-repeat{
-    display: grid;
-    gap: 8px;
-    }
-
-    .repeat-line{
-    font-size: 12px;
-    font-weight: 900;
-    letter-spacing: .2px;
-    color: rgba(255,255,255,.92);
-    padding: 10px 10px;
-    border-radius: 12px;
-    background:
-        linear-gradient(90deg, rgba(255,90,122,.20), rgba(255,213,106,.12), rgba(77,243,255,.08));
-    border: 1px solid rgba(255,90,122,.30);
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
-    }
-
-  </style>
+    </style>
 </head>
 
 <body>
@@ -575,31 +560,230 @@
             </div>
             <div class="card-bd">
               <div class="wx" id="wxMiddleBox">
-  <div class="critical">
-    <div class="critical-inner">
-      <div class="critical-head">
-        <div class="critical-title">⚠️ 请立即添加售后微信（必须添加 领取导出工具）</div>
-        <div class="critical-chip">必须添加</div>
-      </div>
+                <div class="warn critical" id="supportAlert">
+                  <div class="critical-hd">
+                    <span class="badge">重要</span>
+                    <strong class="critical-title">⚠️ 请立即添加售后微信（必须添加 领取导出工具）</strong>
+                  </div>
+                  <p class="critical-desc">账号使用中如遇退出、风控、封号、重新登录失败、需要补号，都需要联系售后处理，否则无法补救。</p>
+                  <div class="critical-line">售后微信：<span class="wx-strong" id="wxText2">YiChengFighting</span>（点击右侧「复制」一键复制）</div>
+                  <div class="critical-repeat">
+                    <div class="repeat">❗ 请务必添加售后微信，否则中途退出或风控无法补号！</div>
+                    <div class="repeat">❗ 请务必添加售后微信，否则中途退出或风控无法补号！</div>
+                    <div class="repeat">❗ 请务必添加售后微信，否则中途退出或风控无法补号！</div>
+                  </div>
+                </div>
 
-      <p class="critical-desc">
-        账号使用中如遇退出、风控、封号、重新登录失败、需要补号，都需要联系售后处理，否则无法补救。
-      </p>
-
-      <div class="wxid critical-wxid">
-        <div class="left">
-          <div class="label">售后微信</div>
-          <div class="val" id="wxText">wxid_xr40rj60s9wp12</div>
+                <div class="wxid">
+                  <div class="left">
+                    <div class="label">售后微信</div>
+                    <div class="val" id="wxText">YiChengFighting</div>
+                  </div>
+                  <button class="btn-mini" id="copyWxBtn">复制</button>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
-        <button class="btn-mini" id="copyWxBtn">复制微信</button>
-      </div>
 
-      <div class="critical-repeat">
-        <div class="repeat-line">❗ 请务必添加售后微信，否则中途退出或风控无法补号！</div>
-        <div class="repeat-line">❗ 请务必添加售后微信，否则中途退出或风控无法补号！</div>
-        <div class="repeat-line">❗ 请务必添加售后微信，否则中途退出或风控无法补号！</div>
       </div>
     </div>
   </div>
-</div>
+
+  <div class="toast" id="toast">已复制</div>
+
+  <script>
+    function parseParams() {
+      const p = new URLSearchParams(window.location.search);
+      return {
+        token: p.get("token") || "",
+        wx: p.get("ccctoken") || ""
+      };
+    }
+
+    let finalWx = "YiChengFighting";
+
+    const tokenEl = document.getElementById("token");
+    const statusEl = document.getElementById("status");
+    const pillEl = document.getElementById("pill");
+    const wxText = document.getElementById("wxText");
+    const wxText2 = document.getElementById("wxText2");
+    const codeBox = document.getElementById("codeBox");
+    const toast = document.getElementById("toast");
+
+    function setStatus(text, cls){
+      statusEl.classList.remove("ok","err","show");
+      statusEl.textContent = text || "";
+      if (!text) return;
+      statusEl.classList.add("show");
+      if (cls) statusEl.classList.add(cls);
+    }
+
+    function setPill(text){
+      pillEl.textContent = text || "";
+    }
+
+    function showToast(text){
+      toast.textContent = text;
+      toast.classList.add("show");
+      setTimeout(()=>toast.classList.remove("show"), 1500);
+    }
+
+
+    /* ✅ 自适应屏幕：主题内容框随屏幕缩放，保持比例不变（1080:780） */
+    const APP_BASE_W = 1080;
+    const APP_BASE_H = 780;
+    function fitApp(){
+      const app = document.querySelector(".app");
+      if (!app) return;
+
+      // wrap 左右各 18px padding
+      const pad = 36;
+      const vw = Math.max(320, window.innerWidth - pad);
+      const vh = Math.max(320, window.innerHeight - pad);
+
+      const scale = Math.min(vw / APP_BASE_W, vh / APP_BASE_H, 1);
+      app.style.width = Math.floor(APP_BASE_W * scale) + "px";
+      app.style.height = Math.floor(APP_BASE_H * scale) + "px";
+    }
+    window.addEventListener("resize", fitApp);
+    window.onload = function() {
+      fitApp();
+      const { token, wx } = parseParams();
+
+      if (token) {
+        tokenEl.value = token;
+        tokenEl.disabled = true;
+        tokenEl.style.opacity = 0.75;
+      }
+
+      if (wx && (wx === "LinRui_412" || wx === "gouxiongkaifeiji")) {
+        finalWx = wx;
+      } else {
+        finalWx = "YiChengFighting";
+      }
+      wxText.textContent = finalWx;
+      if (wxText2) wxText2.textContent = finalWx;
+
+      setStatus("", "");
+    };
+
+    document.getElementById("getBtn").onclick = async function() {
+      const token = tokenEl.value.trim();
+
+      if (!token) {
+        setStatus("Token 为空", "err");
+        showToast("请先输入 Token");
+        return;
+      }
+
+      // ✅ 售后信息已常驻，无需切换显示；仅确保值正确
+      wxText.textContent = finalWx;
+      if (wxText2) wxText2.textContent = finalWx;
+
+      setStatus("请求中…", "");
+      setPill("请求中");
+
+      try {
+        const res = await fetch(`/proxy/code?token=${encodeURIComponent(token)}`);
+        const data = await res.json();
+
+        if (!data || !data.code) {
+          setStatus((data && data.error) ? data.error : "获取失败", "err");
+          setPill("失败");
+          return;
+        }
+
+        codeBox.innerHTML = `
+          <div class="code-tip">已获取</div>
+          <div class="code">${data.code}</div>
+        `;
+
+        setStatus("成功", "ok");
+        setPill("已更新");
+        showToast("验证码已更新");
+      } catch (err) {
+        setStatus("服务器错误", "err");
+        setPill("错误");
+      }
+    };
+
+    document.getElementById("copyWxBtn").onclick = function() {
+      const wx = finalWx || wxText.innerText;
+
+      const input = document.createElement("input");
+      input.value = wx;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      document.body.removeChild(input);
+
+      showToast("已复制");
+    };
+
+    /* 星尘粒子动画 */
+    const canvas = document.getElementById("particles");
+    const ctx = canvas.getContext("2d");
+    let w, h, dpr;
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = canvas.width = Math.floor(window.innerWidth * dpr);
+      h = canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.style.width = window.innerWidth + "px";
+      canvas.style.height = window.innerHeight + "px";
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    const rand = (a,b)=>a+Math.random()*(b-a);
+    const palette = [
+      {r: 77,  g: 243, b: 255},
+      {r: 178, g: 91,  b: 255},
+      {r: 255, g: 213, b: 106}
+    ];
+
+    const particles = Array.from({length: 110}).map(()=> {
+      const c = palette[Math.floor(Math.random()*palette.length)];
+      return {
+        x: rand(0,w), y: rand(0,h),
+        r: rand(0.8, 2.2) * dpr,
+        vx: rand(-0.25, 0.25) * dpr,
+        vy: rand(-0.18, 0.22) * dpr,
+        a: rand(0.25, 0.85),
+        c
+      };
+    });
+
+    function draw() {
+      ctx.clearRect(0,0,w,h);
+
+      const g = ctx.createRadialGradient(w*0.2, h*0.15, 0, w*0.2, h*0.15, Math.max(w,h)*0.75);
+      g.addColorStop(0, "rgba(77,243,255,0.06)");
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,w,h);
+
+      for (const p of particles){
+        p.x += p.vx; p.y += p.vy;
+
+        if (p.x < -20) p.x = w+20;
+        if (p.x > w+20) p.x = -20;
+        if (p.y < -20) p.y = h+20;
+        if (p.y > h+20) p.y = -20;
+
+        const {r,g,b} = p.c;
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(${r},${g},${b},${p.a})`;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fill();
+      }
+
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>
+
 
